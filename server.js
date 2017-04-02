@@ -2,12 +2,18 @@ const fs = require('fs');
 const mongoose = require('mongoose');
 const BOT = require('./bot/base.js');
 const isProduction = process.env.NODE_ENV && process.env.NODE_ENV === 'production';
+const rooms = {};
 var https;
 var http;
 var app;
 var io;
 
 mongoose.Promise = global.Promise;
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.warn(reason);
+    console.warn(promise);
+});
 
 // Heroku handles SSL through a proxy, so let it do its thing
 if (isProduction) {
@@ -30,8 +36,60 @@ function init() {
 
     console.log(`toad is ready on port ${(process.env.PORT || 4433)}`);
     io = require('socket.io')(app);
+
     mongoose.connect(process.env.MONGODB_URI);
-    createBotRoom();
+
+    io.on('connection', (socket) => {
+
+        console.log('Connected');
+
+        socket.on('register', (data) => {
+
+            BOT.register(data)
+                .then((client) => {
+                    socket.emit('registered', { client, socket : socket.id });
+                })
+                .catch(emitError.bind(null, socket));
+
+        });
+
+        socket.on('ready', (data) => {
+
+            BOT.ready(data)
+                .then((client) => {
+                    console.log(client.name);
+                    createRoom(io, client.name);
+                    socket.join(rooms[client.name]);
+                })
+                .catch(emitError.bind(null, socket));
+
+        });
+
+        socket.on('join', (data) => {
+
+            data = typeof date === 'object' ? data : { room: data };
+
+            BOT.join(data, socket)
+                .then((client) => {
+                    if (rooms && client.name in rooms) {
+                        socket.join(rooms[client.name]);
+                    } else {
+                        emitError('Room isn\'t ready');
+                    }
+                })
+                .catch(emitError.bind(null, socket));
+
+        });
+
+        socket.once('disconnect', function () {
+            console.log('Disconnected');
+        });
+
+    });
+
+    function emitError(socket, err) {
+        socket.emit('beep', { message : JSON.stringify(err) });
+    }
 
 }
 
@@ -54,42 +112,39 @@ function httpHandler(req, res) {
 
 }
 
-function createBotRoom() {
+function createRoom(io, room) {
 
-    const bot = io
-        .of('/bot')
-        .on('connection', (socket) => {
+    console.log(`Creating ${room}`);
 
-            console.log('Connected');
+    if (room in rooms) {
+        return rooms[room];
+    }
 
-            socket.on('register', (data) => {
+    var nsp = io.of(`/${room}`);
+    nsp.on('connection', function(socket){
 
-                BOT.register(data)
-                    .then((client) => {
-                        bot.to(socket.id).emit('registered', { client, socket : socket.id });
-                    })
-                    .catch((err) => {
-                        bot.to(socket.id).emit('error', err);
-                    });
+        console.log(`${socket.id} joined ${room}`);
 
-            });
+        nsp.emit('joined', `Someone joined ${room}`);
 
-            socket.on('hello', (data) => {
+        //socket.emit('joined', { socket : socket.id });
 
-                BOT.connect(data)
-                    .then((client) => {
-                        bot.to(socket.id).emit('hello', { client, socket : socket.id });
-                    })
-                    .catch((err) => {
-                        bot.to(socket.id).emit('error', { message : err });
-                    });
+        socket.on('command', (data) => {
 
-            });
+            nsp.emit('error', { message : err });
 
-            socket.once('disconnect', function () {
-                console.log('Disconnected');
-            });
+            BOT.command(data)
+                .then((client) => {
+                    nsp.emit('command', data);
+                })
+                .catch(emitError.bind(socket))
 
         });
+
+    });
+
+    rooms[room] = nsp;
+
+    console.log(JSON.stringify(rooms));
 
 }
