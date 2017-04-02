@@ -1,4 +1,5 @@
 const url = require('url');
+const rooms = require('./rooms.js');
 const Client = require('../schemas/client.js');
 
 function isValid (data, socket, client) {
@@ -12,7 +13,6 @@ function isValid (data, socket, client) {
             return false;
         }
     } catch (err) {
-        console.log(err);
         if (!('api_key' in data)) {
             return false;
         }
@@ -26,7 +26,8 @@ module.exports = function(data, socket) {
 
         Client.findOne({ name : data.room })
             .then((client) => {
-                if (isValid(data, socket, client)) {
+                if (isValid(data, socket, client) && client.name in rooms) {
+                    rooms.get(client.name).join(socket.id);
                     resolve(client);
                 } else {
                     reject('Invalid request');

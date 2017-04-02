@@ -10,15 +10,26 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
         var socket = io();
+
         socket.on('connect', (data) => {
-            console.log(data);
             socket.emit('ready', { name : 'TEST', api_key : '1f55147e7d35ccaca7021fd59b5e43c0' });
         });
 
         socket.on('joined', (data) => {
-            console.log('joined');
             console.log(data);
         });
+
+        socket.on('DESTROY', (data) => {
+            console.log(data);
+        });
+
+        setTimeout(function () {
+            socket.emit('join', 'TEST');
+        }, 2000);
+
+        setTimeout(function () {
+            socket.emit('command', { room : 'TEST', command : 'DESTROY', data : 'Destroy something' });
+        }, 4000);
 
         socket.on('beep', (err) => {
             console.warn(err);

@@ -6,6 +6,7 @@
   "dependencies": {
     "dotenv": "^4.0.0",
     "hat": "0.0.3",
+    "lodash": "^4.17.4",
     "mongoose": "^4.9.2",
     "socketio": "^1.0.0"
   },
