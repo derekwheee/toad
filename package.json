@@ -1,4 +1,12 @@
 {
+  "ava": {
+    "files": [
+      "tests/**/*.js"
+    ],
+    "source": [
+      "**/*.js"
+    ]
+  },
   "name": "toad",
   "version": "0.0.1",
   "description": "A websocket server for doing things",
@@ -11,11 +19,13 @@
     "socketio": "^1.0.0"
   },
   "devDependencies": {
+    "ava": "^0.18.2",
     "dotenv": "^4.0.0",
+    "nyc": "^10.2.0",
     "pem": "^1.9.4"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "nyc ava",
     "start": "node server.js"
   },
   "repository": {

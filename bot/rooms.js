@@ -16,7 +16,7 @@ rooms.set = function (name) {
             }
         },
         leave(id) {
-            _remove(this.clients, id);
+            _.pull(this.clients, id);
         }
     };
 
