@@ -1,0 +1,30 @@
+{
+  "name": "toad",
+  "version": "0.0.1",
+  "description": "A websocket server for doing things",
+  "main": "server.js",
+  "dependencies": {
+    "dotenv": "^4.0.0",
+    "hat": "0.0.3",
+    "mongoose": "^4.9.2",
+    "socketio": "^1.0.0"
+  },
+  "devDependencies": {
+    "dotenv": "^4.0.0",
+    "pem": "^1.9.4"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/frxnz/toad.git"
+  },
+  "author": "Derek Wheelden",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/frxnz/toad/issues"
+  },
+  "homepage": "https://github.com/frxnz/toad#readme"
+}
